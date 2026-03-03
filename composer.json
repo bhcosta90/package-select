@@ -1,0 +1,24 @@
+{
+    "name": "brcas/select",
+    "description": "Reusable select component for Laravel with Alpine.js, Livewire, static options, optgroup, and URL-based search.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Brcas\\Select\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Brcas\\Select\\SelectServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
+
