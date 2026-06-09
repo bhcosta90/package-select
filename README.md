@@ -2,7 +2,7 @@
 
 A powerful, zero-dependency select component for **Laravel** powered by **Alpine.js**. Works with Livewire, plain Blade, static options, remote URLs with search/pagination, optgroups, multiple selection, custom slots, and more — all in a single Blade file.
 
-![Laravel](https://img.shields.io/badge/Laravel-11.x%20|%2012.x-red)
+![Laravel](https://img.shields.io/badge/Laravel-11.x%20|%2012.x%20|%2013.x-red)
 ![Alpine.js](https://img.shields.io/badge/Alpine.js-3.x-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
