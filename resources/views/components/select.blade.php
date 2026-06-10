@@ -17,6 +17,7 @@
     'values'          => [],
     'params'          => [],
     'options'         => [],  // array, Enum::class, or Enum::cases()
+    'label'           => '',
     'placeholder'     => '',
     'required'        => false,
     'minSearchLength' => 2,
@@ -43,19 +44,19 @@
 @php
     // Apply config defaults when attribute was not explicitly passed
     $cfg = config('select', []);
-    $inputBorder      = $inputBorder ?: ($cfg['input_border'] ?? 'border-gray-300');
-    $inputFocusBorder = $inputFocusBorder ?: ($cfg['input_focus_border'] ?? 'focus-within:border-blue-500');
-    $inputFocusRing   = $inputFocusRing ?: ($cfg['input_focus_ring'] ?? 'focus-within:ring-blue-500');
+    $inputBorder      = $inputBorder ?: ($cfg['input_border'] ?? 'ring-gray-300');
+    $inputFocusBorder = $inputFocusBorder ?: ($cfg['input_focus_border'] ?? '');
+    $inputFocusRing   = $inputFocusRing ?: ($cfg['input_focus_ring'] ?? 'focus-within:ring-primary-600');
     $dropdownBorder   = $dropdownBorder ?: ($cfg['dropdown_border'] ?? 'border-gray-200');
-    $itemHoverBg      = $itemHoverBg ?: ($cfg['item_hover_bg'] ?? 'hover:bg-blue-50');
-    $itemHoverText    = $itemHoverText ?: ($cfg['item_hover_text'] ?? 'hover:text-blue-700');
-    $itemSelectedBg   = $itemSelectedBg ?: ($cfg['item_selected_bg'] ?? 'bg-blue-50');
-    $itemSelectedText = $itemSelectedText ?: ($cfg['item_selected_text'] ?? 'text-blue-700');
-    $itemSelectedIcon = $itemSelectedIcon ?: ($cfg['item_selected_icon'] ?? 'text-blue-600');
+    $itemHoverBg      = $itemHoverBg ?: ($cfg['item_hover_bg'] ?? 'hover:bg-primary-50');
+    $itemHoverText    = $itemHoverText ?: ($cfg['item_hover_text'] ?? 'hover:text-primary-700');
+    $itemSelectedBg   = $itemSelectedBg ?: ($cfg['item_selected_bg'] ?? 'bg-primary-50');
+    $itemSelectedText = $itemSelectedText ?: ($cfg['item_selected_text'] ?? 'text-primary-700');
+    $itemSelectedIcon = $itemSelectedIcon ?: ($cfg['item_selected_icon'] ?? 'text-primary-600');
     $placeholderText  = $placeholderText ?: ($cfg['placeholder_text'] ?? 'italic text-gray-400');
-    $tagBg            = $tagBg ?: ($cfg['tag_bg'] ?? 'bg-blue-100');
-    $tagText          = $tagText ?: ($cfg['tag_text'] ?? 'text-blue-700');
-    $tagHoverText     = $tagHoverText ?: ($cfg['tag_hover_text'] ?? 'hover:text-blue-900');
+    $tagBg            = $tagBg ?: ($cfg['tag_bg'] ?? 'bg-primary-100');
+    $tagText          = $tagText ?: ($cfg['tag_text'] ?? 'text-primary-700');
+    $tagHoverText     = $tagHoverText ?: ($cfg['tag_hover_text'] ?? 'hover:text-primary-900');
     $footerBorder     = $footerBorder ?: ($cfg['footer_border'] ?? 'border-gray-100');
     $footerBg         = $footerBg ?: ($cfg['footer_bg'] ?? 'bg-white');
     $footerText       = $footerText ?: ($cfg['footer_text'] ?? 'text-gray-400');
@@ -121,7 +122,11 @@
     }
 @endphp
 
-<div
+<div>
+    @if ($label)
+        <x-label :label="$label" :error="(bool) $wireError" />
+    @endif
+    <div
         class="relative w-full"
         data-url="{{ $url }}"
         data-value-key="{{ $valueKey }}"
@@ -788,7 +793,7 @@
     {{-- INPUT                                                             --}}
     {{-- ================================================================ --}}
     <div
-            class="flex min-h-[2.5rem] w-full flex-wrap items-center gap-1 rounded-md border bg-white px-2 py-1 shadow-sm focus-within:ring-1 {{ $inputBorder }} {{ $inputFocusBorder }} {{ $inputFocusRing }}"
+            class="flex w-full flex-wrap items-center gap-1 rounded-md bg-white px-3 py-1.5 ring-1 focus-within:ring-2 {{ $inputBorder }} {{ $inputFocusRing }}"
             :class="initializing ? 'opacity-60 cursor-not-allowed' : ''"
             @click="if (!initializing) $el.querySelector('input[type=text]').focus()"
     >
@@ -818,7 +823,7 @@
                 @keydown="onKeydown($event)"
                 :disabled="initializing"
                 :placeholder="initializing ? i18nLoading : i18nSearch"
-                class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 text-sm outline-none placeholder:text-gray-400 disabled:cursor-not-allowed"
+                class="min-w-[120px] flex-1 border-none bg-transparent p-0 text-lg outline-none placeholder:text-gray-400 disabled:cursor-not-allowed"
                 autocomplete="off"
         />
 
@@ -927,7 +932,13 @@
     >
         @lang('No results found.')
     </div>
-    @if ($wireError)
-        <span class="text-sm text-red-600 dark:text-red-400">{{ $wireError }}</span>
+    @if ($wireProp)
+        <span
+            x-cloak
+            x-show="typeof $wire?.$errors?.has === 'function' ? $wire.$errors.has('{{ $wireProp }}') : @js($wireError !== null)"
+            x-text="typeof $wire?.$errors?.first === 'function' ? ($wire.$errors.first('{{ $wireProp }}') ?? '') : @js($wireError ?? '')"
+            class="text-sm text-red-600 dark:text-red-400"
+        ></span>
     @endif
+    </div>
 </div>
