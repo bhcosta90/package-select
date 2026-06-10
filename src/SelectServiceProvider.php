@@ -16,7 +16,12 @@ final class SelectServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Blade::anonymousComponentPath(__DIR__ . '/../resources/views/components', 'bhcosta90');
+        $published = resource_path('views/vendor/select/components');
+
+        Blade::anonymousComponentPath(
+            is_dir($published) ? $published : __DIR__ . '/../resources/views/components',
+            'bhcosta90'
+        );
 
         $this->publishes([
             __DIR__ . '/../config/select.php' => config_path('select.php'),
