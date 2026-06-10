@@ -100,6 +100,7 @@
     $isLivewire = $attributes->whereStartsWith('wire:model')->isNotEmpty();
     $xParams    = $attributes->get('x-params');
     $isOptions  = count($normalizedOptions) > 0;
+    $wireProp   = '';
 
     if ($isLivewire) {
         $wireAttr     = $attributes->whereStartsWith('wire:model')->first();
@@ -109,6 +110,14 @@
             : null;
     } else {
         $initialValue = $multiple ? array_values($values) : $value;
+    }
+
+    $wireError = null;
+    if ($isLivewire && $wireProp) {
+        $sharedErrors = app('view')->getShared()['errors'] ?? null;
+        if ($sharedErrors instanceof \Illuminate\Support\ViewErrorBag) {
+            $wireError = $sharedErrors->first($wireProp) ?: null;
+        }
     }
 @endphp
 
@@ -291,6 +300,26 @@
                         }
                     }
                 } catch (e) {}
+            });
+
+            // Sync selectedItems / selectedLabel when modelValue is changed externally (e.g. Livewire reset)
+            this.$watch('modelValue', (newVal) => {
+                if (this.selecting || this.initializing) return;
+
+                if (this.multiple) {
+                    const isEmpty = !newVal || (Array.isArray(newVal) && newVal.length === 0);
+                    if (isEmpty) {
+                        this.selectedItems = [];
+                    } else if (Array.isArray(newVal)) {
+                        const newValStrings = newVal.map(v => String(v));
+                        this.selectedItems = this.selectedItems.filter(s => newValStrings.includes(String(s.value)));
+                    }
+                } else {
+                    if (newVal === null || newVal === undefined || newVal === '') {
+                        this.selectedLabel = '';
+                        this.search        = '';
+                    }
+                }
             });
 
             // Trigger search on typing (with debounce)
@@ -898,4 +927,7 @@
     >
         @lang('No results found.')
     </div>
+    @if ($wireError)
+        <span class="text-sm text-red-600 dark:text-red-400">{{ $wireError }}</span>
+    @endif
 </div>
