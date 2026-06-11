@@ -112,6 +112,8 @@
         $initialValue = $multiple ? array_values($values) : $value;
     }
 
+    $focusRef = $attributes->get('x-ref', '');
+
     $wireError = null;
     if ($isLivewire && $wireProp) {
         $sharedErrors = app('view')->getShared()['errors'] ?? null;
@@ -184,6 +186,8 @@
         labelKey: 'name',
         multiple: false,
         params:   {},
+
+        dropdownStyle: {},
 
         // Static options mode
         isOptionsMode: false,
@@ -414,8 +418,7 @@
                 this.hasSearched = true;
                 this.open = this.results.length > 0;
                 this.$nextTick(() => {
-                    const dd = this.$el.querySelector('[data-dropdown]');
-                    if (dd) dd.scrollTop = 0;
+                    if (this.$refs.dropdown) this.$refs.dropdown.scrollTop = 0;
                 });
             } else {
                 // Silent: pre-loads results without opening or marking hasSearched
@@ -429,11 +432,18 @@
         {{-- ============================================================ --}}
 
         computeDropdownDirection() {
-            const maxHeight = 240;
-            const wrapper   = this.$el.querySelector('div[class*=\'flex min-h\']') ?? this.$el.firstElementChild;
-            const rect      = (wrapper ?? this.$el).getBoundingClientRect();
+            const maxHeight  = 240;
+            const wrapper    = this.$el.querySelector('div[class*=\'flex min-h\']') ?? this.$el.firstElementChild;
+            const rect       = (wrapper ?? this.$el).getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
             this.dropdownUp  = spaceBelow < maxHeight;
+
+            const base = { width: rect.width + 'px', left: rect.left + 'px', maxHeight: maxHeight + 'px' };
+            if (this.dropdownUp) {
+                this.dropdownStyle = { ...base, bottom: (window.innerHeight - rect.top + 4) + 'px', top: 'auto' };
+            } else {
+                this.dropdownStyle = { ...base, top: (rect.bottom + 4) + 'px', bottom: 'auto' };
+            }
         },
 
         {{-- ============================================================ --}}
@@ -492,8 +502,7 @@
             if (openAfter) {
                 this.open = true;
                 this.$nextTick(() => {
-                    const dd = this.$el.querySelector('[data-dropdown]');
-                    if (dd) dd.scrollTop = 0;
+                    if (this.$refs.dropdown) this.$refs.dropdown.scrollTop = 0;
                 });
             }
         },
@@ -685,7 +694,7 @@
         },
 
         scrollToHighlighted() {
-            const dd   = this.$el.querySelector('[data-dropdown]');
+            const dd   = this.$refs.dropdown;
             const item = dd?.children[this.highlightedIndex];
             if (!dd || !item) return;
 
@@ -763,7 +772,7 @@
         @else
             {{ $attributes->whereStartsWith('x-model') }}
         @endif
-        @click.away="open = false"
+        @click.window="if (open && !$el.contains($event.target) && !$event.target.closest('[data-brcas-dropdown]')) open = false"
 >
     {{-- Custom slot template (hidden, used to render each item) --}}
     @if ($slot->isNotEmpty())
@@ -818,6 +827,7 @@
                 @keydown="onKeydown($event)"
                 :disabled="initializing"
                 :placeholder="initializing ? i18nLoading : i18nSearch"
+                @if($focusRef) data-focus="{{ $focusRef }}" @endif
                 class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 text-sm outline-none placeholder:text-gray-400 disabled:cursor-not-allowed"
                 autocomplete="off"
         />
@@ -843,90 +853,99 @@
     </div>
 
     {{-- ================================================================ --}}
-    {{-- RESULTS DROPDOWN                                                  --}}
+    {{-- RESULTS + NO-RESULTS DROPDOWNS (single teleport)                 --}}
     {{-- ================================================================ --}}
-    <div
-            x-show="open && results.length > 0"
-            style="display: none; max-height: 240px;"
-            x-transition:enter="transition ease-out duration-100"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-75"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            data-dropdown
-            @scroll="onScroll($event)"
-            class="absolute z-50 w-full overflow-auto rounded-md border bg-white shadow-lg {{ $dropdownBorder }}"
-            :class="dropdownUp ? 'bottom-full mb-1' : 'top-full mt-1'"
-    >
-        {{-- Item list --}}
-        <template x-for="(item, index) in results" :key="'i' + index">
+    <template x-teleport="body">
+        <div style="display:contents">
+
             <div
-                @mousedown.prevent="if (!item._group) selectItem(item)"
-                @mouseenter="if (!item._group) highlightedIndex = index"
-                :class="item._group
+                    x-show="open && results.length > 0"
+                    style="display: none;"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    data-brcas-dropdown
+                    data-dropdown
+                    x-ref="dropdown"
+                    @scroll="onScroll($event)"
+                    class="fixed z-50 overflow-auto rounded-md border bg-white shadow-lg {{ $dropdownBorder }}"
+                    :style="dropdownStyle"
+            >
+                {{-- Item list --}}
+                <template x-for="(item, index) in results" :key="'i' + index">
+                    <div
+                            @mousedown.prevent="if (!item._group) selectItem(item)"
+                            @mouseenter="if (!item._group) highlightedIndex = index"
+                            :class="item._group
                     ? 'px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 select-none cursor-default'
                     : [
                         'cursor-pointer text-sm text-gray-700 px-4 py-2',
                         itemHoverBg, itemHoverText,
                         isSelected(item) || highlightedIndex === index ? itemSelectedBg + ' ' + itemSelectedText : '',
                     ]"
-            >
-                {{-- Group header --}}
-                <span x-show="item._group" x-text="item.label"></span>
+                    >
+                        {{-- Group header --}}
+                        <span x-show="item._group" x-text="item.label"></span>
 
-                {{-- Normal item (without slot) --}}
-                <span x-show="!item._group && !hasCustomSlot" class="flex items-center justify-between">
+                        {{-- Normal item (without slot) --}}
+                        <span x-show="!item._group && !hasCustomSlot" class="flex items-center justify-between">
                     <span
-                        x-text="isOptionsMode ? item.label : item[labelKey]"
-                        :class="item._placeholder ? placeholderText : ''"
+                            x-text="isOptionsMode ? item.label : item[labelKey]"
+                            :class="item._placeholder ? placeholderText : ''"
                     ></span>
                     <svg x-show="multiple && isSelected(item)" class="h-4 w-4 shrink-0" :class="itemSelectedIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                 </span>
 
-                {{-- Normal item (with slot) --}}
-                <span x-show="!item._group && hasCustomSlot" class="flex w-full items-center justify-between">
+                        {{-- Normal item (with slot) --}}
+                        <span x-show="!item._group && hasCustomSlot" class="flex w-full items-center justify-between">
                     <span x-html="renderSlot(item)" class="flex-1"></span>
                     <svg x-show="multiple && isSelected(item)" class="h-4 w-4 shrink-0" :class="itemSelectedIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                 </span>
+                    </div>
+                </template>
+
+                {{-- Loading more spinner --}}
+                <div x-show="loadingMore" class="flex items-center justify-center py-2">
+                    <svg class="h-4 w-4 animate-spin text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </div>
+
+                {{-- Footer with total count (URL mode only) --}}
+                <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none {{ $footerBorder }} {{ $footerBg }} {{ $footerText }}"
+                     x-text="i18nFooter.replace(':showing', results.length).replace(':total', total)"
+                ></div>
             </div>
-        </template>
 
-        {{-- Loading more spinner --}}
-        <div x-show="loadingMore" class="flex items-center justify-center py-2">
-            <svg class="h-4 w-4 animate-spin text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-            </svg>
-        </div>
+            {{-- ================================================================ --}}
+            {{-- NO RESULTS                                                        --}}
+            {{-- ================================================================ --}}
+            <div
+                    x-show="open && !loading && results.length === 0 && hasSearched"
+                    style="display: none;"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    data-brcas-dropdown
+                    class="fixed z-50 rounded-md border px-4 py-3 text-sm shadow-lg {{ $emptyBorder }} {{ $emptyBg }} {{ $emptyText }}"
+                    :style="dropdownStyle"
+            >
+                @lang('No results found.')
+            </div>
 
-        {{-- Footer with total count (URL mode only) --}}
-        <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none {{ $footerBorder }} {{ $footerBg }} {{ $footerText }}"
-             x-text="i18nFooter.replace(':showing', results.length).replace(':total', total)"
-        ></div>
-    </div>
-
-    {{-- ================================================================ --}}
-    {{-- NO RESULTS                                                        --}}
-    {{-- ================================================================ --}}
-    <div
-            x-show="open && !loading && results.length === 0 && hasSearched"
-            style="display: none;"
-            x-transition:enter="transition ease-out duration-100"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-75"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            class="absolute z-50 w-full rounded-md border px-4 py-3 text-sm shadow-lg {{ $emptyBorder }} {{ $emptyBg }} {{ $emptyText }}"
-            :class="dropdownUp ? 'bottom-full mb-1' : 'top-full mt-1'"
-    >
-        @lang('No results found.')
-    </div>
+        </div>{{-- display:contents wrapper --}}
+    </template>
     @if ($wireError)
         <span class="text-sm text-red-600 dark:text-red-400">{{ $wireError }}</span>
     @endif
