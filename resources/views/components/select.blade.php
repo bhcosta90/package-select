@@ -33,7 +33,7 @@
     'error'           => '',
 ])
 @php
-    $theme = app(\Brcas\Select\SelectTheme::class);
+    $theme = \Illuminate\Container\Container::getInstance()->make(\Brcas\Select\SelectTheme::class);
     $inputWrapperBase = $theme->get('input_wrapper_base');
 
     // Normalize static options to [{value, label}, ...] with optgroup/enum support

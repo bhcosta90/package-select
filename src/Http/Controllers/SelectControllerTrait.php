@@ -77,7 +77,7 @@ trait SelectControllerTrait
         // Search with min length check
         if ($hasSearch) {
             $columns = (array) $this->searchColumns();
-            $query->whereAny($columns, config('select.search_operator', 'like'), "%{$search}%");
+            $query->whereAny($columns, \Illuminate\Container\Container::getInstance()->make('config')->get('select.search_operator', 'like'), "%{$search}%");
         }
 
         // Paginate

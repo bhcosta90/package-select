@@ -24,12 +24,6 @@ final class SelectTheme
 
     private ?string $current = null;
 
-    public function __construct()
-    {
-        $fromConfig   = array_filter(config('select', []), fn ($v) => is_string($v));
-        $this->blocks = array_merge($this->blocks, $fromConfig);
-    }
-
     public function customize(): static
     {
         return $this;
