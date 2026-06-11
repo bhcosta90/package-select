@@ -856,7 +856,7 @@
     {{-- RESULTS + NO-RESULTS DROPDOWNS (single teleport)                 --}}
     {{-- ================================================================ --}}
     <template x-teleport="body">
-        <div style="display:contents">
+        <div style="display:contents" @mousedown.stop>
 
             <div
                     x-show="open && results.length > 0"
