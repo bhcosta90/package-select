@@ -908,7 +908,7 @@
         </div>
 
         {{-- Footer with total count (URL mode only) --}}
-        <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none {{ $footer ?: $theme->get('footer') }}"
+        <div x-show="!isOptionsMode && total !== null" class="sticky {{ $footer ?: $theme->get('footer') }}"
              x-text="i18nFooter.replace(':showing', results.length).replace(':total', total)"
         ></div>
     </div>

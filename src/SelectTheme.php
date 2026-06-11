@@ -17,7 +17,7 @@ final class SelectTheme
         'item_text_size'     => 'text-sm',
         'placeholder'        => 'italic text-gray-400',
         'tag'                => 'bg-blue-100 text-blue-700 hover:text-blue-900',
-        'footer'             => 'border-gray-100 bg-white text-gray-400',
+        'footer'             => 'sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none border-gray-100 bg-white text-gray-400',
         'empty'              => 'border-gray-200 bg-white text-gray-500',
         'error'              => 'text-sm text-red-600 dark:text-red-400',
     ];
