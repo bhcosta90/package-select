@@ -432,9 +432,16 @@
         {{-- ============================================================ --}}
 
         computeDropdownDirection() {
-            const maxHeight  = 240;
-            const wrapper    = this.$el.querySelector('div[class*=\'flex min-h\']') ?? this.$el.firstElementChild;
-            const rect       = (wrapper ?? this.$el).getBoundingClientRect();
+            const maxHeight = 240;
+            const wrapper   = this.$el.querySelector('div[class*=\'flex min-h\']') ?? this.$el.firstElementChild;
+            const el        = wrapper ?? this.$el;
+            const rect      = el.getBoundingClientRect();
+
+            if (rect.width === 0 || rect.left >= window.innerWidth || rect.right <= 0) {
+                requestAnimationFrame(() => this.computeDropdownDirection());
+                return;
+            }
+
             const spaceBelow = window.innerHeight - rect.bottom;
             this.dropdownUp  = spaceBelow < maxHeight;
 
@@ -443,6 +450,16 @@
                 this.dropdownStyle = { ...base, bottom: (window.innerHeight - rect.top + 4) + 'px', top: 'auto' };
             } else {
                 this.dropdownStyle = { ...base, top: (rect.bottom + 4) + 'px', bottom: 'auto' };
+            }
+
+            // Keep tracking while the parent container is still animating
+            if (this.open || this.opening) {
+                const snapLeft = rect.left;
+                requestAnimationFrame(() => {
+                    if (el.getBoundingClientRect().left !== snapLeft) {
+                        this.computeDropdownDirection();
+                    }
+                });
             }
         },
 
