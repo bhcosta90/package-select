@@ -11,7 +11,7 @@ final class SelectServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/select.php', 'select');
+        $this->app->singleton(SelectTheme::class);
     }
 
     public function boot(): void

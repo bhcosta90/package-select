@@ -17,6 +17,7 @@
     'values'          => [],
     'params'          => [],
     'options'         => [],  // array, Enum::class, or Enum::cases()
+    'label'           => '',
     'placeholder'     => '',
     'required'        => false,
     'minSearchLength' => 2,
@@ -41,27 +42,28 @@
     'emptyText'       => '',
 ])
 @php
-    // Apply config defaults when attribute was not explicitly passed
-    $cfg = config('select', []);
-    $inputBorder      = $inputBorder ?: ($cfg['input_border'] ?? 'border-gray-300');
-    $inputFocusBorder = $inputFocusBorder ?: ($cfg['input_focus_border'] ?? 'focus-within:border-blue-500');
-    $inputFocusRing   = $inputFocusRing ?: ($cfg['input_focus_ring'] ?? 'focus-within:ring-blue-500');
-    $dropdownBorder   = $dropdownBorder ?: ($cfg['dropdown_border'] ?? 'border-gray-200');
-    $itemHoverBg      = $itemHoverBg ?: ($cfg['item_hover_bg'] ?? 'hover:bg-blue-50');
-    $itemHoverText    = $itemHoverText ?: ($cfg['item_hover_text'] ?? 'hover:text-blue-700');
-    $itemSelectedBg   = $itemSelectedBg ?: ($cfg['item_selected_bg'] ?? 'bg-blue-50');
-    $itemSelectedText = $itemSelectedText ?: ($cfg['item_selected_text'] ?? 'text-blue-700');
-    $itemSelectedIcon = $itemSelectedIcon ?: ($cfg['item_selected_icon'] ?? 'text-blue-600');
-    $placeholderText  = $placeholderText ?: ($cfg['placeholder_text'] ?? 'italic text-gray-400');
-    $tagBg            = $tagBg ?: ($cfg['tag_bg'] ?? 'bg-blue-100');
-    $tagText          = $tagText ?: ($cfg['tag_text'] ?? 'text-blue-700');
-    $tagHoverText     = $tagHoverText ?: ($cfg['tag_hover_text'] ?? 'hover:text-blue-900');
-    $footerBorder     = $footerBorder ?: ($cfg['footer_border'] ?? 'border-gray-100');
-    $footerBg         = $footerBg ?: ($cfg['footer_bg'] ?? 'bg-white');
-    $footerText       = $footerText ?: ($cfg['footer_text'] ?? 'text-gray-400');
-    $emptyBorder      = $emptyBorder ?: ($cfg['empty_border'] ?? 'border-gray-200');
-    $emptyBg          = $emptyBg ?: ($cfg['empty_bg'] ?? 'bg-white');
-    $emptyText        = $emptyText ?: ($cfg['empty_text'] ?? 'text-gray-500');
+    // Apply theme defaults when attribute was not explicitly passed
+    $theme = app(\Brcas\Select\SelectTheme::class);
+    $inputWrapperBase = $theme->get('input_wrapper_base');
+    $inputBorder      = $inputBorder ?: $theme->get('input_border');
+    $inputFocusBorder = $inputFocusBorder ?: $theme->get('input_focus_border');
+    $inputFocusRing   = $inputFocusRing ?: $theme->get('input_focus_ring');
+    $dropdownBorder   = $dropdownBorder ?: $theme->get('dropdown_border');
+    $itemHoverBg      = $itemHoverBg ?: $theme->get('item_hover_bg');
+    $itemHoverText    = $itemHoverText ?: $theme->get('item_hover_text');
+    $itemSelectedBg   = $itemSelectedBg ?: $theme->get('item_selected_bg');
+    $itemSelectedText = $itemSelectedText ?: $theme->get('item_selected_text');
+    $itemSelectedIcon = $itemSelectedIcon ?: $theme->get('item_selected_icon');
+    $placeholderText  = $placeholderText ?: $theme->get('placeholder_text');
+    $tagBg            = $tagBg ?: $theme->get('tag_bg');
+    $tagText          = $tagText ?: $theme->get('tag_text');
+    $tagHoverText     = $tagHoverText ?: $theme->get('tag_hover_text');
+    $footerBorder     = $footerBorder ?: $theme->get('footer_border');
+    $footerBg         = $footerBg ?: $theme->get('footer_bg');
+    $footerText       = $footerText ?: $theme->get('footer_text');
+    $emptyBorder      = $emptyBorder ?: $theme->get('empty_border');
+    $emptyBg          = $emptyBg ?: $theme->get('empty_bg');
+    $emptyText        = $emptyText ?: $theme->get('empty_text');
 
     // Normalize static options to [{value, label}, ...] with optgroup/enum support
     $normalizedOptions = [];
@@ -123,7 +125,11 @@
     }
 @endphp
 
-<div
+<div>
+    @if ($label)
+        <x-label :label="$label" :error="(bool) $wireError" />
+    @endif
+    <div
         class="relative w-full"
         data-url="{{ $url }}"
         data-value-key="{{ $valueKey }}"
@@ -180,14 +186,14 @@
         hasMorePages:    false,
         highlightedIndex: -1,
 
+        dropdownStyle: {},
+
         // Settings read from DOM
         url:      '',
         valueKey: 'id',
         labelKey: 'name',
         multiple: false,
         params:   {},
-
-        dropdownStyle: {},
 
         // Static options mode
         isOptionsMode: false,
@@ -814,7 +820,7 @@
     {{-- INPUT                                                             --}}
     {{-- ================================================================ --}}
     <div
-            class="flex min-h-[2.5rem] w-full flex-wrap items-center gap-1 rounded-md border bg-white px-2 py-1 shadow-sm focus-within:ring-1 {{ $inputBorder }} {{ $inputFocusBorder }} {{ $inputFocusRing }}"
+            class="flex min-h-[2.5rem] w-full flex-wrap items-center gap-1 rounded-md bg-white px-2 py-1 {{ $inputWrapperBase }} {{ $inputBorder }} {{ $inputFocusBorder }} {{ $inputFocusRing }}"
             :class="initializing ? 'opacity-60 cursor-not-allowed' : ''"
             @click="if (!initializing) $el.querySelector('input[type=text]').focus()"
     >
@@ -845,7 +851,7 @@
                 :disabled="initializing"
                 :placeholder="initializing ? i18nLoading : i18nSearch"
                 @if($focusRef) data-focus="{{ $focusRef }}" @endif
-                class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 text-sm outline-none placeholder:text-gray-400 disabled:cursor-not-allowed"
+                class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 {{ $theme->get('input_search_size') }} outline-none placeholder:text-gray-400 disabled:cursor-not-allowed"
                 autocomplete="off"
         />
 
@@ -873,97 +879,103 @@
     {{-- RESULTS + NO-RESULTS DROPDOWNS (single teleport)                 --}}
     {{-- ================================================================ --}}
     <template x-teleport="body">
-        <div style="display:contents" @mousedown.stop>
+    <div style="display:contents" @mousedown.stop>
 
+    <div
+            x-show="open && results.length > 0"
+            style="display: none;"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-75"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            data-brcas-dropdown
+            data-dropdown
+            x-ref="dropdown"
+            @scroll="onScroll($event)"
+            class="fixed z-50 overflow-auto rounded-md border bg-white shadow-lg {{ $dropdownBorder }}"
+            :style="dropdownStyle"
+    >
+        {{-- Item list --}}
+        <template x-for="(item, index) in results" :key="'i' + index">
             <div
-                    x-show="open && results.length > 0"
-                    style="display: none;"
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    data-brcas-dropdown
-                    data-dropdown
-                    x-ref="dropdown"
-                    @scroll="onScroll($event)"
-                    class="fixed z-50 overflow-auto rounded-md border bg-white shadow-lg {{ $dropdownBorder }}"
-                    :style="dropdownStyle"
-            >
-                {{-- Item list --}}
-                <template x-for="(item, index) in results" :key="'i' + index">
-                    <div
-                            @mousedown.prevent="if (!item._group) selectItem(item)"
-                            @mouseenter="if (!item._group) highlightedIndex = index"
-                            :class="item._group
+                @mousedown.prevent="if (!item._group) selectItem(item)"
+                @mouseenter="if (!item._group) highlightedIndex = index"
+                :class="item._group
                     ? 'px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 select-none cursor-default'
                     : [
-                        'cursor-pointer text-sm text-gray-700 px-4 py-2',
+                        'cursor-pointer {{ $theme->get('item_text_size') }} text-gray-700 px-4 py-2',
                         itemHoverBg, itemHoverText,
                         isSelected(item) || highlightedIndex === index ? itemSelectedBg + ' ' + itemSelectedText : '',
                     ]"
-                    >
-                        {{-- Group header --}}
-                        <span x-show="item._group" x-text="item.label"></span>
+            >
+                {{-- Group header --}}
+                <span x-show="item._group" x-text="item.label"></span>
 
-                        {{-- Normal item (without slot) --}}
-                        <span x-show="!item._group && !hasCustomSlot" class="flex items-center justify-between">
+                {{-- Normal item (without slot) --}}
+                <span x-show="!item._group && !hasCustomSlot" class="flex items-center justify-between">
                     <span
-                            x-text="isOptionsMode ? item.label : item[labelKey]"
-                            :class="item._placeholder ? placeholderText : ''"
+                        x-text="isOptionsMode ? item.label : item[labelKey]"
+                        :class="item._placeholder ? placeholderText : ''"
                     ></span>
                     <svg x-show="multiple && isSelected(item)" class="h-4 w-4 shrink-0" :class="itemSelectedIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                 </span>
 
-                        {{-- Normal item (with slot) --}}
-                        <span x-show="!item._group && hasCustomSlot" class="flex w-full items-center justify-between">
+                {{-- Normal item (with slot) --}}
+                <span x-show="!item._group && hasCustomSlot" class="flex w-full items-center justify-between">
                     <span x-html="renderSlot(item)" class="flex-1"></span>
                     <svg x-show="multiple && isSelected(item)" class="h-4 w-4 shrink-0" :class="itemSelectedIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                 </span>
-                    </div>
-                </template>
-
-                {{-- Loading more spinner --}}
-                <div x-show="loadingMore" class="flex items-center justify-center py-2">
-                    <svg class="h-4 w-4 animate-spin text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                </div>
-
-                {{-- Footer with total count (URL mode only) --}}
-                <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none {{ $footerBorder }} {{ $footerBg }} {{ $footerText }}"
-                     x-text="i18nFooter.replace(':showing', results.length).replace(':total', total)"
-                ></div>
             </div>
+        </template>
 
-            {{-- ================================================================ --}}
-            {{-- NO RESULTS                                                        --}}
-            {{-- ================================================================ --}}
-            <div
-                    x-show="open && !loading && results.length === 0 && hasSearched"
-                    style="display: none;"
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    data-brcas-dropdown
-                    class="fixed z-50 rounded-md border px-4 py-3 text-sm shadow-lg {{ $emptyBorder }} {{ $emptyBg }} {{ $emptyText }}"
-                    :style="dropdownStyle"
-            >
-                @lang('No results found.')
-            </div>
+        {{-- Loading more spinner --}}
+        <div x-show="loadingMore" class="flex items-center justify-center py-2">
+            <svg class="h-4 w-4 animate-spin text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+        </div>
 
-        </div>{{-- display:contents wrapper --}}
+        {{-- Footer with total count (URL mode only) --}}
+        <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none {{ $footerBorder }} {{ $footerBg }} {{ $footerText }}"
+             x-text="i18nFooter.replace(':showing', results.length).replace(':total', total)"
+        ></div>
+    </div>
+
+    {{-- ================================================================ --}}
+    {{-- NO RESULTS                                                        --}}
+    {{-- ================================================================ --}}
+    <div
+            x-show="open && !loading && results.length === 0 && hasSearched"
+            style="display: none;"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-75"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            data-brcas-dropdown
+            class="fixed z-50 rounded-md border px-4 py-3 text-sm shadow-lg {{ $emptyBorder }} {{ $emptyBg }} {{ $emptyText }}"
+            :style="dropdownStyle"
+    >
+        @lang('No results found.')
+    </div>
+
+    </div>{{-- display:contents wrapper --}}
     </template>
-    @if ($wireError)
-        <span class="text-sm text-red-600 dark:text-red-400">{{ $wireError }}</span>
+    @if ($wireProp)
+        <span
+            x-cloak
+            x-show="typeof $wire?.$errors?.has === 'function' ? $wire.$errors.has('{{ $wireProp }}') : @js($wireError !== null)"
+            x-text="typeof $wire?.$errors?.first === 'function' ? ($wire.$errors.first('{{ $wireProp }}') ?? '') : @js($wireError ?? '')"
+            class="text-sm text-red-600 dark:text-red-400"
+        ></span>
     @endif
+    </div>
 </div>
