@@ -21,49 +21,20 @@
     'placeholder'     => '',
     'required'        => false,
     'minSearchLength' => 2,
-    'inputBorder'     => '',
-    'inputFocusBorder'=> '',
-    'inputFocusRing'  => '',
-    'dropdownBorder'  => '',
-    'itemHoverBg'     => '',
-    'itemHoverText'   => '',
-    'itemSelectedBg'  => '',
-    'itemSelectedText'=> '',
+    'input'           => '',
+    'dropdown'        => '',
+    'itemHover'       => '',
+    'itemSelected'    => '',
     'itemSelectedIcon'=> '',
     'placeholderText' => '',
-    'tagBg'           => '',
-    'tagText'         => '',
-    'tagHoverText'    => '',
-    'footerBorder'    => '',
-    'footerBg'        => '',
-    'footerText'      => '',
-    'emptyBorder'     => '',
-    'emptyBg'         => '',
-    'emptyText'       => '',
+    'tag'             => '',
+    'footer'          => '',
+    'empty'           => '',
+    'error'           => '',
 ])
 @php
-    // Apply theme defaults when attribute was not explicitly passed
     $theme = app(\Brcas\Select\SelectTheme::class);
     $inputWrapperBase = $theme->get('input_wrapper_base');
-    $inputBorder      = $inputBorder ?: $theme->get('input_border');
-    $inputFocusBorder = $inputFocusBorder ?: $theme->get('input_focus_border');
-    $inputFocusRing   = $inputFocusRing ?: $theme->get('input_focus_ring');
-    $dropdownBorder   = $dropdownBorder ?: $theme->get('dropdown_border');
-    $itemHoverBg      = $itemHoverBg ?: $theme->get('item_hover_bg');
-    $itemHoverText    = $itemHoverText ?: $theme->get('item_hover_text');
-    $itemSelectedBg   = $itemSelectedBg ?: $theme->get('item_selected_bg');
-    $itemSelectedText = $itemSelectedText ?: $theme->get('item_selected_text');
-    $itemSelectedIcon = $itemSelectedIcon ?: $theme->get('item_selected_icon');
-    $placeholderText  = $placeholderText ?: $theme->get('placeholder_text');
-    $tagBg            = $tagBg ?: $theme->get('tag_bg');
-    $tagText          = $tagText ?: $theme->get('tag_text');
-    $tagHoverText     = $tagHoverText ?: $theme->get('tag_hover_text');
-    $footerBorder     = $footerBorder ?: $theme->get('footer_border');
-    $footerBg         = $footerBg ?: $theme->get('footer_bg');
-    $footerText       = $footerText ?: $theme->get('footer_text');
-    $emptyBorder      = $emptyBorder ?: $theme->get('empty_border');
-    $emptyBg          = $emptyBg ?: $theme->get('empty_bg');
-    $emptyText        = $emptyText ?: $theme->get('empty_text');
 
     // Normalize static options to [{value, label}, ...] with optgroup/enum support
     $normalizedOptions = [];
@@ -144,12 +115,10 @@
         data-i18n-loading="@lang('Loading')"
         data-i18n-search="@lang('Search')"
         data-i18n-footer="@lang('1–:showing of :total records')"
-        data-item-hover-bg="{{ $itemHoverBg }}"
-        data-item-hover-text="{{ $itemHoverText }}"
-        data-item-selected-bg="{{ $itemSelectedBg }}"
-        data-item-selected-text="{{ $itemSelectedText }}"
-        data-item-selected-icon="{{ $itemSelectedIcon }}"
-        data-placeholder-text="{{ $placeholderText }}"
+        data-item-hover="{{ $itemHover ?: $theme->get('item_hover') }}"
+        data-item-selected="{{ $itemSelected ?: $theme->get('item_selected') }}"
+        data-item-selected-icon="{{ $itemSelectedIcon ?: $theme->get('item_selected_icon') }}"
+        data-placeholder-text="{{ $placeholderText ?: $theme->get('placeholder') }}"
         @if($xParams)
             x-effect="
             const _p = {{ $xParams }};
@@ -203,10 +172,8 @@
         minSearchLength: 2,
 
         // Theme
-        itemHoverBg:      '',
-        itemHoverText:    '',
-        itemSelectedBg:   '',
-        itemSelectedText: '',
+        itemHover:        '',
+        itemSelected:     '',
         itemSelectedIcon: '',
         placeholderText:  '',
 
@@ -237,11 +204,9 @@
             this.valueKey         = this.$el.dataset.valueKey;
             this.labelKey         = this.$el.dataset.labelKey;
             this.multiple         = this.$el.dataset.multiple === 'true';
-            this.itemHoverBg      = this.$el.dataset.itemHoverBg;
-            this.itemHoverText    = this.$el.dataset.itemHoverText;
-            this.itemSelectedBg   = this.$el.dataset.itemSelectedBg;
-            this.itemSelectedText = this.$el.dataset.itemSelectedText;
-            this.itemSelectedIcon = this.$el.dataset.itemSelectedIcon;
+            this.itemHover        = this.$el.dataset.itemHover || '';
+            this.itemSelected     = this.$el.dataset.itemSelected || '';
+            this.itemSelectedIcon = this.$el.dataset.itemSelectedIcon || '';
             this.placeholderText  = this.$el.dataset.placeholderText || '';
             this.placeholder      = this.$el.dataset.placeholder || '';
             this.required         = this.$el.dataset.required === 'true';
@@ -820,7 +785,7 @@
     {{-- INPUT                                                             --}}
     {{-- ================================================================ --}}
     <div
-            class="flex min-h-[2.5rem] w-full flex-wrap items-center gap-1 rounded-md bg-white px-2 py-1 {{ $inputWrapperBase }} {{ $inputBorder }} {{ $inputFocusBorder }} {{ $inputFocusRing }}"
+            class="flex min-h-[2.5rem] w-full flex-wrap items-center gap-1 rounded-md bg-white px-2 py-1 {{ $inputWrapperBase }} {{ $input ?: $theme->get('input') }}"
             :class="initializing ? 'opacity-60 cursor-not-allowed' : ''"
             @click="if (!initializing) $el.querySelector('input[type=text]').focus()"
     >
@@ -828,7 +793,7 @@
         <template x-if="multiple">
             <template x-for="tag in selectedItems" :key="tag.value">
                 <span
-                        class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium cursor-pointer select-none {{ $tagBg }} {{ $tagText }} {{ $tagHoverText }}"
+                        class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium cursor-pointer select-none {{ $tag ?: $theme->get('tag') }}"
                         :class="initializing ? 'pointer-events-none opacity-60' : ''"
                         @click.stop="if (!initializing) removeTag(tag.value)"
                 >
@@ -894,7 +859,7 @@
             data-dropdown
             x-ref="dropdown"
             @scroll="onScroll($event)"
-            class="fixed z-50 overflow-auto rounded-md border bg-white shadow-lg {{ $dropdownBorder }}"
+            class="fixed z-50 overflow-auto rounded-md border bg-white shadow-lg {{ $dropdown ?: $theme->get('dropdown') }}"
             :style="dropdownStyle"
     >
         {{-- Item list --}}
@@ -906,8 +871,8 @@
                     ? 'px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 select-none cursor-default'
                     : [
                         'cursor-pointer text-gray-700 px-4 py-2 {{ $theme->get('item_text_size') }}',
-                        itemHoverBg, itemHoverText,
-                        isSelected(item) || highlightedIndex === index ? itemSelectedBg + ' ' + itemSelectedText : '',
+                        itemHover,
+                        isSelected(item) || highlightedIndex === index ? itemSelected : '',
                     ]"
             >
                 {{-- Group header --}}
@@ -943,7 +908,7 @@
         </div>
 
         {{-- Footer with total count (URL mode only) --}}
-        <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none {{ $footerBorder }} {{ $footerBg }} {{ $footerText }}"
+        <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 border-t px-3 py-1.5 text-left text-xs select-none {{ $footer ?: $theme->get('footer') }}"
              x-text="i18nFooter.replace(':showing', results.length).replace(':total', total)"
         ></div>
     </div>
@@ -961,7 +926,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             data-brcas-dropdown
-            class="fixed z-50 rounded-md border px-4 py-3 text-sm shadow-lg {{ $emptyBorder }} {{ $emptyBg }} {{ $emptyText }}"
+            class="fixed z-50 rounded-md border px-4 py-3 text-sm shadow-lg {{ $empty ?: $theme->get('empty') }}"
             :style="dropdownStyle"
     >
         @lang('No results found.')
@@ -974,7 +939,7 @@
             x-cloak
             x-show="typeof $wire?.$errors?.has === 'function' ? $wire.$errors.has('{{ $wireProp }}') : @js($wireError !== null)"
             x-text="typeof $wire?.$errors?.first === 'function' ? ($wire.$errors.first('{{ $wireProp }}') ?? '') : @js($wireError ?? '')"
-            class="text-sm text-red-600 dark:text-red-400"
+            class="{{ $error ?: $theme->get('error') }}"
         ></span>
     @endif
     </div>

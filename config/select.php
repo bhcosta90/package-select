@@ -18,33 +18,25 @@ return [
     | Default theme for the x-select component
     |--------------------------------------------------------------------------
     | Change values here to update the look of all selects at once.
-    | Each value accepts Tailwind CSS classes.
+    | Each value accepts one or more Tailwind CSS classes.
     */
 
-    'input_border'       => 'border-gray-300',
-    'input_focus_border' => 'focus-within:border-blue-500',
-    'input_focus_ring'   => 'focus-within:ring-blue-500',
+    'input'              => 'border-gray-300 focus-within:border-blue-500 focus-within:ring-blue-500',
 
-    'dropdown_border' => 'border-gray-200',
+    'dropdown'           => 'border-gray-200',
 
-    'item_hover_bg'      => 'hover:bg-blue-50',
-    'item_hover_text'    => 'hover:text-blue-700',
-    'item_selected_bg'   => 'bg-blue-50',
-    'item_selected_text' => 'text-blue-700',
+    'item_hover'         => 'hover:bg-blue-50 hover:text-blue-700',
+    'item_selected'      => 'bg-blue-50 text-blue-700',
     'item_selected_icon' => 'text-blue-600',
 
-    'placeholder_text' => 'italic text-gray-400',
+    'placeholder'        => 'italic text-gray-400',
 
-    'tag_bg'         => 'bg-blue-100',
-    'tag_text'       => 'text-blue-700',
-    'tag_hover_text' => 'hover:text-blue-900',
+    'tag'                => 'bg-blue-100 text-blue-700 hover:text-blue-900',
 
-    'footer_border' => 'border-gray-100',
-    'footer_bg'     => 'bg-white',
-    'footer_text'   => 'text-gray-400',
+    'footer'             => 'border-gray-100 bg-white text-gray-400',
 
-    'empty_border' => 'border-gray-200',
-    'empty_bg'     => 'bg-white',
-    'empty_text'   => 'text-gray-500',
+    'empty'              => 'border-gray-200 bg-white text-gray-500',
+
+    'error'              => 'text-sm text-red-600 dark:text-red-400',
 
 ];
