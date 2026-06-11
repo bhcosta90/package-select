@@ -851,7 +851,7 @@
                 :disabled="initializing"
                 :placeholder="initializing ? i18nLoading : i18nSearch"
                 @if($focusRef) data-focus="{{ $focusRef }}" @endif
-                class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 {{ $theme->get('input_search_size') }} outline-none placeholder:text-gray-400 disabled:cursor-not-allowed"
+                class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed {{ $theme->get('input_search_size') }}"
                 autocomplete="off"
         />
 
@@ -905,7 +905,7 @@
                 :class="item._group
                     ? 'px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 select-none cursor-default'
                     : [
-                        'cursor-pointer {{ $theme->get('item_text_size') }} text-gray-700 px-4 py-2',
+                        'cursor-pointer text-gray-700 px-4 py-2 {{ $theme->get('item_text_size') }}',
                         itemHoverBg, itemHoverText,
                         isSelected(item) || highlightedIndex === index ? itemSelectedBg + ' ' + itemSelectedText : '',
                     ]"
