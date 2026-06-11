@@ -506,86 +506,72 @@ class ProductSelectController
 | `x-model` | Blade/Alpine | Two-way binding with Alpine.js data |
 | `x-params` | Blade/Alpine | Reactive extra params (resets on change) |
 
-### Theme (Tailwind classes)
-
-All theme props fall back to `config/select.php`. Pass them per-component to override:
-
-| Prop | Config Key | Default |
-|------|-----------|---------|
-| `input-border` | `input_border` | `border-gray-300` |
-| `input-focus-border` | `input_focus_border` | `focus-within:border-blue-500` |
-| `input-focus-ring` | `input_focus_ring` | `focus-within:ring-blue-500` |
-| `dropdown-border` | `dropdown_border` | `border-gray-200` |
-| `item-hover-bg` | `item_hover_bg` | `hover:bg-blue-50` |
-| `item-hover-text` | `item_hover_text` | `hover:text-blue-700` |
-| `item-selected-bg` | `item_selected_bg` | `bg-blue-50` |
-| `item-selected-text` | `item_selected_text` | `text-blue-700` |
-| `item-selected-icon` | `item_selected_icon` | `text-blue-600` |
-| `placeholder-text` | `placeholder_text` | `italic text-gray-400` |
-| `tag-bg` | `tag_bg` | `bg-blue-100` |
-| `tag-text` | `tag_text` | `text-blue-700` |
-| `tag-hover-text` | `tag_hover_text` | `hover:text-blue-900` |
-| `footer-border` | `footer_border` | `border-gray-100` |
-| `footer-bg` | `footer_bg` | `bg-white` |
-| `footer-text` | `footer_text` | `text-gray-400` |
-| `empty-border` | `empty_border` | `border-gray-200` |
-| `empty-bg` | `empty_bg` | `bg-white` |
-| `empty-text` | `empty_text` | `text-gray-500` |
-
-#### Per-component override example
-
-```blade
-<x-bhcosta90::select
-    wire:model="status"
-    item-hover-bg="hover:bg-green-50"
-    item-selected-bg="bg-green-100"
-    tag-bg="bg-green-100"
-    tag-text="text-green-800"
-    :options="['active' => 'Active', 'inactive' => 'Inactive']"
-/>
-```
-
 ---
 
-## 🎨 Global Theme (config)
+## 🎨 Theming
 
-Publish the config to customize all selects at once:
+The component is fully themeable via **config** or **programmatic API**. There are no per-component theme props — customization is applied globally so the look stays consistent across your app.
 
-```bash
-php artisan vendor:publish --tag=select-config
-```
+### Via `SelectTheme` (programmatic)
 
-This creates `config/select.php`:
+For full control — including IDE autocomplete on every visual aspect — resolve `SelectTheme` and use the fluent domain API. The best place for this is a service provider's `boot()` method.
 
 ```php
-return [
-    // Search operator for all SelectController endpoints.
-    // Use 'like' for MySQL/SQLite or 'ilike' for PostgreSQL.
-    'search_operator'    => 'like',
+use Brcas\Select\Facades\SelectTheme;
 
-    'input_border'       => 'border-gray-300',
-    'input_focus_border' => 'focus-within:border-blue-500',
-    'input_focus_ring'   => 'focus-within:ring-blue-500',
-    'dropdown_border'    => 'border-gray-200',
-    'item_hover_bg'      => 'hover:bg-blue-50',
-    'item_hover_text'    => 'hover:text-blue-700',
-    'item_selected_bg'   => 'bg-blue-50',
-    'item_selected_text' => 'text-blue-700',
-    'item_selected_icon' => 'text-blue-600',
-    'placeholder_text'   => 'italic text-gray-400',
-    'tag_bg'             => 'bg-blue-100',
-    'tag_text'           => 'text-blue-700',
-    'tag_hover_text'     => 'hover:text-blue-900',
-    'footer_border'      => 'border-gray-100',
-    'footer_bg'          => 'bg-white',
-    'footer_text'        => 'text-gray-400',
-    'empty_border'       => 'border-gray-200',
-    'empty_bg'           => 'bg-white',
-    'empty_text'         => 'text-gray-500',
-];
+public function boot(): void
+{
+    // Swap to a green palette
+    SelectTheme::input()->border('border shadow-sm focus-within:ring-1 border-green-300 focus-within:border-green-500 focus-within:ring-green-500');
+    SelectTheme::item()->hover('hover:bg-green-50 hover:text-green-700')
+                       ->selected('bg-green-50 text-green-700')
+                       ->selectedIcon('text-green-600');
+    SelectTheme::tag()->color('bg-green-100 text-green-700 hover:text-green-900');
+}
 ```
 
-> Without publishing, the built-in defaults are used automatically.
+Each domain method returns the same builder so you can chain multiple aspects:
+
+```php
+SelectTheme::footer()->color('bg-gray-50 text-gray-500')
+                     ->padding('px-4 py-2')
+                     ->extra('uppercase tracking-wide');
+
+SelectTheme::tag()->color('bg-purple-100 text-purple-700 hover:text-purple-900')
+                  ->text('text-xs font-semibold')
+                  ->extra('uppercase');
+
+SelectTheme::error()->color('text-orange-600 dark:text-orange-400');
+SelectTheme::placeholder('text-gray-300');
+```
+
+#### Domain reference
+
+| Method | Aspects available |
+|--------|------------------|
+| `input()` | `border()` `color()` `padding()` `text()` `extra()` `searchText()` |
+| `dropdown()` | `border()` `color()` `extra()` |
+| `item()` | `hover()` `selected()` `selectedIcon()` `color()` `padding()` `text()` `extra()` |
+| `tag()` | `color()` `padding()` `text()` `extra()` |
+| `footer()` | `border()` `color()` `padding()` `text()` `extra()` |
+| `empty()` | `border()` `color()` `padding()` `text()` `extra()` |
+| `error()` | `color()` `text()` `extra()` |
+| `placeholder(string)` | *(single string, called directly on theme)* |
+
+#### Targeted replacement (power-user)
+
+If you only want to swap one class inside a block without rewriting the whole string, use `block()` + `replace()` / `append()` / `remove()`:
+
+```php
+// Replace only the border color
+SelectTheme::block('input_border')->replace('border-gray-300', 'border-red-400');
+
+// Append a class
+SelectTheme::block('footer_extra')->append('uppercase');
+
+// Remove a class
+SelectTheme::block('tag_color')->remove('hover:text-blue-900');
+```
 
 ---
 
@@ -644,16 +630,21 @@ brcas/select/
 ├── composer.json
 ├── README.md
 ├── config/
-│   └── select.php                        # Theme defaults (publishable)
+│   └── select.php                          # Theme defaults (publishable)
 ├── resources/
 │   └── views/
 │       └── components/
-│           └── select.blade.php          # The component (publishable)
+│           └── select.blade.php            # The component (publishable)
 └── src/
-    ├── SelectServiceProvider.php          # Auto-discovered provider
+    ├── SelectServiceProvider.php            # Auto-discovered provider
+    ├── SelectTheme.php                      # Theme class — fluent domain API
+    ├── Theme/
+    │   ├── ThemeDomain.php                  # Generic domain builder (border/color/padding/text/extra)
+    │   ├── InputThemeDomain.php             # Input domain (+ searchText)
+    │   └── ItemThemeDomain.php              # Item domain (+ hover/selected/selectedIcon)
     └── Http/
         └── Controllers/
-            └── SelectController.php       # Abstract controller for API endpoints
+            └── SelectControllerTrait.php    # Trait for API endpoints
 ```
 
 ---

@@ -13,15 +13,7 @@ final class SelectServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/select.php', 'select');
 
-        $this->app->singleton(SelectTheme::class, function () {
-            $theme = new SelectTheme();
-
-            foreach (array_filter($this->app['config']->get('select', []), fn ($v) => is_string($v)) as $key => $value) {
-                $theme->set($key, $value);
-            }
-
-            return $theme;
-        });
+        $this->app->singleton(SelectTheme::class);
     }
 
     public function boot(): void

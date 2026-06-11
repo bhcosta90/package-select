@@ -21,20 +21,9 @@
     'placeholder'     => '',
     'required'        => false,
     'minSearchLength' => 2,
-    'input'           => '',
-    'dropdown'        => '',
-    'itemHover'       => '',
-    'itemSelected'    => '',
-    'itemSelectedIcon'=> '',
-    'placeholderText' => '',
-    'tag'             => '',
-    'footer'          => '',
-    'empty'           => '',
-    'error'           => '',
 ])
 @php
     $theme = \Illuminate\Container\Container::getInstance()->make(\Brcas\Select\SelectTheme::class);
-    $inputWrapperBase = $theme->get('input_wrapper_base');
 
     // Normalize static options to [{value, label}, ...] with optgroup/enum support
     $normalizedOptions = [];
@@ -115,10 +104,10 @@
         data-i18n-loading="@lang('Loading')"
         data-i18n-search="@lang('Search')"
         data-i18n-footer="@lang('1–:showing of :total records')"
-        data-item-hover="{{ $itemHover ?: $theme->get('item_hover') }}"
-        data-item-selected="{{ $itemSelected ?: $theme->get('item_selected') }}"
-        data-item-selected-icon="{{ $itemSelectedIcon ?: $theme->get('item_selected_icon') }}"
-        data-placeholder-text="{{ $placeholderText ?: $theme->get('placeholder') }}"
+        data-item-hover="{{ $theme->get('item_hover') }}"
+        data-item-selected="{{ $theme->get('item_selected') }}"
+        data-item-selected-icon="{{ $theme->get('item_selected_icon') }}"
+        data-placeholder-text="{{ $theme->get('placeholder') }}"
         @if($xParams)
             x-effect="
             const _p = {{ $xParams }};
@@ -785,7 +774,7 @@
     {{-- INPUT                                                             --}}
     {{-- ================================================================ --}}
     <div
-            class="flex min-h-[2.5rem] w-full flex-wrap items-center gap-1 rounded-md bg-white px-2 py-1 {{ $inputWrapperBase }} {{ $input ?: $theme->get('input') }}"
+            class="flex min-h-[2.5rem] w-full flex-wrap items-center gap-1 rounded-md {{ $theme->get('input_border') }} {{ $theme->get('input_color') }} {{ $theme->get('input_padding') }} {{ $theme->get('input_extra') }}"
             :class="initializing ? 'opacity-60 cursor-not-allowed' : ''"
             @click="if (!initializing) $el.querySelector('input[type=text]').focus()"
     >
@@ -793,7 +782,7 @@
         <template x-if="multiple">
             <template x-for="tag in selectedItems" :key="tag.value">
                 <span
-                        class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium cursor-pointer select-none {{ $tag ?: $theme->get('tag') }}"
+                        class="inline-flex items-center gap-1 rounded cursor-pointer select-none {{ $theme->get('tag_color') }} {{ $theme->get('tag_padding') }} {{ $theme->get('tag_text') }} {{ $theme->get('tag_extra') }}"
                         :class="initializing ? 'pointer-events-none opacity-60' : ''"
                         @click.stop="if (!initializing) removeTag(tag.value)"
                 >
@@ -816,7 +805,7 @@
                 :disabled="initializing"
                 :placeholder="initializing ? i18nLoading : i18nSearch"
                 @if($focusRef) data-focus="{{ $focusRef }}" @endif
-                class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed {{ $theme->get('input_search_size') }}"
+                class="min-w-[120px] flex-1 border-none bg-transparent p-0.5 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed {{ $theme->get('input_search_text') }}"
                 autocomplete="off"
         />
 
@@ -859,7 +848,7 @@
             data-dropdown
             x-ref="dropdown"
             @scroll="onScroll($event)"
-            class="fixed z-50 overflow-auto rounded-md border bg-white shadow-lg {{ $dropdown ?: $theme->get('dropdown') }}"
+            class="fixed z-50 overflow-auto rounded-md shadow-lg {{ $theme->get('dropdown_border') }} {{ $theme->get('dropdown_color') }} {{ $theme->get('dropdown_extra') }}"
             :style="dropdownStyle"
     >
         {{-- Item list --}}
@@ -870,7 +859,7 @@
                 :class="item._group
                     ? 'px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 select-none cursor-default'
                     : [
-                        'cursor-pointer text-gray-700 px-4 py-2 {{ $theme->get('item_text_size') }}',
+                        'cursor-pointer {{ $theme->get('item_color') }} {{ $theme->get('item_padding') }} {{ $theme->get('item_text') }} {{ $theme->get('item_extra') }}',
                         itemHover,
                         isSelected(item) || highlightedIndex === index ? itemSelected : '',
                     ]"
@@ -908,7 +897,7 @@
         </div>
 
         {{-- Footer with total count (URL mode only) --}}
-        <div x-show="!isOptionsMode && total !== null" class="sticky {{ $footer ?: $theme->get('footer') }}"
+        <div x-show="!isOptionsMode && total !== null" class="sticky bottom-0 text-left select-none {{ $theme->get('footer_border') }} {{ $theme->get('footer_color') }} {{ $theme->get('footer_padding') }} {{ $theme->get('footer_text') }} {{ $theme->get('footer_extra') }}"
              x-text="i18nFooter.replace(':showing', results.length).replace(':total', total)"
         ></div>
     </div>
@@ -926,7 +915,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             data-brcas-dropdown
-            class="fixed z-50 rounded-md border px-4 py-3 text-sm shadow-lg {{ $empty ?: $theme->get('empty') }}"
+            class="fixed z-50 rounded-md shadow-lg {{ $theme->get('empty_border') }} {{ $theme->get('empty_color') }} {{ $theme->get('empty_padding') }} {{ $theme->get('empty_text') }} {{ $theme->get('empty_extra') }}"
             :style="dropdownStyle"
     >
         @lang('No results found.')
@@ -939,7 +928,7 @@
             x-cloak
             x-show="typeof $wire?.$errors?.has === 'function' ? $wire.$errors.has('{{ $wireProp }}') : @js($wireError !== null)"
             x-text="typeof $wire?.$errors?.first === 'function' ? ($wire.$errors.first('{{ $wireProp }}') ?? '') : @js($wireError ?? '')"
-            class="{{ $error ?: $theme->get('error') }}"
+            class="{{ $theme->get('error_color') }} {{ $theme->get('error_text') }} {{ $theme->get('error_extra') }}"
         ></span>
     @endif
     </div>

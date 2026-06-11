@@ -18,7 +18,10 @@
         "laravel": {
             "providers": [
                 "Brcas\\Select\\SelectServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "SelectTheme": "Brcas\\Select\\Facades\\SelectTheme"
+            }
         }
     },
     "minimum-stability": "stable"
